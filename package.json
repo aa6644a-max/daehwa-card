@@ -1,0 +1,13 @@
+{
+  "name": "daehwa-card",
+  "version": "1.0.0",
+  "private": true,
+  "description": "투명필름 대화카드 관상용 화면",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

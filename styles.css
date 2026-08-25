@@ -1,0 +1,413 @@
+/* ── 기본값: 호흡 파라미터는 JS가 덮어씀 ───────────────────────── */
+:root{
+  --period: 1s;          /* app.js 의 DEFAULTS.period 와 같은 값을 유지할 것 */
+  --dim-max: 0.15;          /* 0.15 = 밝기 100% ↔ 85% */
+  --ease: ease-in-out;
+
+  --paper: #ffffff;         /* 화면은 오로지 흰색 */
+  --ink: #1a1a1a;
+
+  --side-pad: 14px;
+}
+
+/* ── 필름 카드가 화면에 닿아도 아무 일도 일어나지 않게 하드닝 ──── */
+*, *::before, *::after{ box-sizing: border-box; }
+
+html, body{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+               "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+body{
+  touch-action: none;               /* 스크롤 · 핀치줌 · 더블탭줌 차단 */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;      /* iOS 길게누름 메뉴 차단 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 카드가 눌러진 채로 놓여도 눌린 상태가 남지 않도록 */
+:where(#app) *:active{ background: inherit; }
+
+/* 세로가 짧은 기기(iPhone SE 등)에서는 바를 더 줄여 흰 영역을 88mm 에 맞춘다 */
+/* 세로가 짧은 기기에서는 아트워크를 더 줄여 카드 자리를 지킨다 */
+@media (max-height: 700px){
+  :root{ --art-max-h: 14vh; }
+}
+
+/* [hidden] 이 ID 선택자의 display 규칙에 지지 않도록 (오버레이 3종에 필수) */
+[hidden]{ display: none !important; }
+
+/* ── 언어별 글꼴 ────────────────────────────────────────────
+   같은 한자라도 언어에 따라 자형이 달라서 lang 을 정확히 걸어줘야 한다. */
+html[lang^="ja"] body{
+  font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+               "Yu Gothic", "Noto Sans JP", "Meiryo", sans-serif;
+}
+html[lang^="zh"] body{
+  font-family: -apple-system, "PingFang TC", "Hiragino Sans CNS",
+               "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+}
+
+/* ── 언어 선택 화면 ─────────────────────────────────────────── */
+#langpick{
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  padding: 24px;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+#langpick-box{
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#langpick-title{
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.lang-btn{
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+.lang-btn[lang="ja"]{ font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
+.lang-btn[lang="zh-Hant"]{ font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif; }
+
+/* 언어를 고르기 전에는 호흡을 멈춰 글자가 또렷하게 */
+body.lang-pending #dimmer{ animation-play-state: paused; }
+
+#panel-lang{
+  width: 100%;
+  margin-top: 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+}
+
+/* ── 레이아웃 ──────────────────────────────────────────────── */
+#app{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ── 상단 · 하단 아트워크와 카드 무대 ────────────────────────
+   아트워크가 세로를 너무 먹으면 카드(63x88mm)가 흰 영역에 안 들어간다.
+   --art-max-h 로 아트워크 높이를 묶어 무대를 우선 확보한다.
+   실물 카드로 확인한 뒤 이 값만 조절하면 된다. */
+:root{
+  --art-max-h: 17vh;
+}
+
+#topbar{
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--side-pad);
+}
+
+#bottombar{
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--side-pad);
+  /* 하단 아트워크를 두 번 탭하면 전체화면이 되므로 여기만 터치를 살려둔다. */
+  pointer-events: auto;
+}
+
+#top-art, #bottom-art{
+  display: block;
+  width: 100%;
+  max-height: var(--art-max-h);
+  object-fit: contain;
+}
+
+/* 카드가 놓이는 무대: 완전한 흰색, 터치 대상 없음 */
+#stage{
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--paper);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px var(--side-pad);
+}
+
+/* 카드 놓는 자리 가이드. 원본 디자인의 둥근 사각형을 CSS 로 다시 그린 것.
+   비율은 실제 카드와 같은 63:88 로 잡아, 남는 공간 안에서 최대로 키운다. */
+#card-guide{
+  height: 100%;
+  width: var(--guide-w, 89%);   /* 원본 디자인의 가로 비율 */
+  border: 1.5px solid var(--ink);
+  border-radius: 22px;
+}
+
+/* ── 호흡 레이어 ───────────────────────────────────────────── */
+#dimmer{
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  will-change: opacity;
+  animation: breathe var(--period) var(--ease) infinite;
+}
+
+@keyframes breathe{
+  0%, 100% { opacity: 0; }
+  50%      { opacity: var(--dim-max); }
+}
+
+/* 심장박동: 쿵(lub) — 쿵(dub) — 긴 쉼.
+   한 주기에 박동이 2번 들어가므로 주기 하한이 호흡보다 높다 (app.js MIN_PERIOD). */
+body.wave-heart #dimmer{
+  animation-name: heartbeat;
+  animation-timing-function: linear;   /* 모양은 키프레임이 만든다 */
+}
+
+@keyframes heartbeat{
+  0%   { opacity: 0; }
+  6%   { opacity: var(--dim-max); }                    /* 쿵 */
+  13%  { opacity: calc(var(--dim-max) * 0.12); }
+  20%  { opacity: calc(var(--dim-max) * 0.82); }       /* 쿵 */
+  34%  { opacity: 0; }
+  100% { opacity: 0; }                                 /* 쉼 */
+}
+
+/* 설정 패널이 열려 있는 동안엔 호흡을 멈춰 값 조절이 눈에 들어오게 */
+body.panel-open #dimmer{ animation-play-state: paused; }
+
+/* 접근성: 모션을 줄이도록 설정한 기기에서는 정지 */
+@media (prefers-reduced-motion: reduce){
+  #dimmer{ animation: none; opacity: 0; }
+}
+
+/* ── 화면 꺼짐 방지용 비디오 (보이지 않게) ────────────────────── */
+#keepalive{
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  left: -10px;
+  top: -10px;
+  opacity: 0.01;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── 안내 · 패널 (호흡 레이어보다 위) ─────────────────────────── */
+#notices{
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  /* 하단 배너를 덮으면 '배너 두 번 탭 = 전체화면'이 막힌다.
+     --bottombar-h 는 app.js 가 실측해 넣는다. */
+  bottom: calc(var(--bottombar-h, 92px) + 12px + env(safe-area-inset-bottom));
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;   /* 빈 컨테이너가 화면을 가로채지 않도록 */
+}
+
+#a2hs, #sleep-warn, #fs-note{
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(28, 28, 30, 0.92);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+}
+
+#a2hs p, #sleep-warn p, #fs-note p{ margin: 0; flex: 1; }
+
+#a2hs button, #sleep-warn button, #fs-note button{
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+#panel{
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+#panel-box{
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+#panel-box h2{
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 심장박동은 곡선을 키프레임이 정하므로 곡선 선택을 숨긴다 */
+body.wave-heart #ease-row{ display: none; }
+
+#panel-box label{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 14px 0 6px;
+  font-size: 13px;
+  color: #444;
+}
+
+#panel-box output{
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #111;
+}
+
+#panel-box input[type="range"]{
+  width: 100%;
+  margin: 0;
+  touch-action: pan-x;            /* 슬라이더만 터치 허용 */
+}
+
+#panel-box select{
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+}
+
+#diag{
+  margin-top: 16px;
+  font-size: 12px;
+  color: #666;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+#diag summary{ cursor: default; color: #888; }
+
+#diag-body{
+  margin: 8px 0;
+  padding: 10px;
+  background: #f6f6f6;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #333;
+  /* body 전역의 user-select:none 때문에 복사가 안 되므로 여기서만 되살린다 */
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+}
+
+#diag-fs{
+  width: 100%;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #333;
+}
+
+#panel-actions{
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+#panel-actions button{
+  flex: 1;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+#panel-reset{ background: #f0f0f0; color: #333; }
+#panel-close{ background: #1a1a1a; color: #fff; }
+
+#panel-hint{
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* 패널·안내 안에서는 터치가 정상 동작해야 함 */
+#panel, #notices{ touch-action: manipulation; }
