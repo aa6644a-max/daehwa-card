@@ -15,9 +15,11 @@
     period: 1,        // 초 — QR 로 들어온 모든 사람이 같은 1초 주기를 보게 고정
     depth: 15,        // % (15 = 밝기 100% ↔ 85%)
     ease: 'ease-in-out',
-    guideScale: 100   // % — 카드 가이드 확대/축소 (100 = 원래 크기)
+    guideW: 89,       // % — #stage 가로 기준. 원본 디자인 비율(89%)
+    guideH: 100       // % — #stage 세로 기준. 기본은 남는 세로 전부
   };
-  var GUIDE_SCALE_MIN = 80, GUIDE_SCALE_MAX = 130;
+  var GUIDE_W_MIN = 60, GUIDE_W_MAX = 110;
+  var GUIDE_H_MIN = 70, GUIDE_H_MAX = 130;
 
   /* 주기 하한 — 광과민성 발작 기준(WCAG 2.3.1, 초당 3회) 때문에 파형별로 다르다.
      어둡기 15% 만 되어도 상대휘도가 1.0 → 0.69 로 떨어져 '번쩍임' 임계에 해당하므로
@@ -96,7 +98,8 @@
         period: clamp(Number(saved.period), minPeriod(wave), MAX_PERIOD, DEFAULTS.period),
         depth: clamp(Number(saved.depth), 0, 40, DEFAULTS.depth),
         ease: typeof saved.ease === 'string' ? saved.ease : DEFAULTS.ease,
-        guideScale: clamp(Number(saved.guideScale), GUIDE_SCALE_MIN, GUIDE_SCALE_MAX, DEFAULTS.guideScale)
+        guideW: clamp(Number(saved.guideW), GUIDE_W_MIN, GUIDE_W_MAX, DEFAULTS.guideW),
+        guideH: clamp(Number(saved.guideH), GUIDE_H_MIN, GUIDE_H_MAX, DEFAULTS.guideH)
       };
     } catch (e) {
       return Object.assign({}, DEFAULTS);
@@ -116,7 +119,8 @@
     if (q.has('period')) state.period = clamp(parseFloat(q.get('period')), minPeriod(state.wave), MAX_PERIOD, state.period);
     if (q.has('depth')) state.depth = clamp(parseFloat(q.get('depth')), 0, 40, state.depth);
     if (q.has('ease')) state.ease = q.get('ease');
-    if (q.has('guideScale')) state.guideScale = clamp(parseFloat(q.get('guideScale')), GUIDE_SCALE_MIN, GUIDE_SCALE_MAX, state.guideScale);
+    if (q.has('guideW')) state.guideW = clamp(parseFloat(q.get('guideW')), GUIDE_W_MIN, GUIDE_W_MAX, state.guideW);
+    if (q.has('guideH')) state.guideH = clamp(parseFloat(q.get('guideH')), GUIDE_H_MIN, GUIDE_H_MAX, state.guideH);
   })();
 
   function apply() {
@@ -126,7 +130,8 @@
     root.style.setProperty('--period', state.period + 's');
     root.style.setProperty('--dim-max', (state.depth / 100).toFixed(3));
     root.style.setProperty('--ease', state.ease);
-    root.style.setProperty('--guide-scale', (state.guideScale / 100).toFixed(2));
+    root.style.setProperty('--guide-w', state.guideW + '%');
+    root.style.setProperty('--guide-h', state.guideH + '%');
     body.classList.toggle('wave-heart', state.wave === 'heart');
   }
 
@@ -139,10 +144,12 @@
   var periodInput = document.getElementById('period');
   var depthInput = document.getElementById('depth');
   var easeInput = document.getElementById('ease');
-  var guideScaleInput = document.getElementById('guide-scale');
+  var guideWInput = document.getElementById('guide-w');
+  var guideHInput = document.getElementById('guide-h');
   var periodOut = document.getElementById('period-out');
   var depthOut = document.getElementById('depth-out');
-  var guideScaleOut = document.getElementById('guide-scale-out');
+  var guideWOut = document.getElementById('guide-w-out');
+  var guideHOut = document.getElementById('guide-h-out');
 
   function syncInputs() {
     waveInput.value = state.wave;
@@ -150,13 +157,15 @@
     periodInput.value = state.period;
     depthInput.value = state.depth;
     easeInput.value = state.ease;
-    guideScaleInput.value = state.guideScale;
+    guideWInput.value = state.guideW;
+    guideHInput.value = state.guideH;
 
     var bpm = Math.round(60 / state.period);
     periodOut.textContent = Number(state.period).toFixed(1) + '초' +
       (state.wave === 'heart' ? '  (약 ' + bpm + ' BPM)' : '');
     depthOut.textContent = state.depth + '%  (밝기 100% ↔ ' + (100 - state.depth) + '%)';
-    guideScaleOut.textContent = state.guideScale + '%';
+    guideWOut.textContent = state.guideW + '%';
+    guideHOut.textContent = state.guideH + '%';
   }
 
   function onChange() {
@@ -164,7 +173,8 @@
     state.period = parseFloat(periodInput.value);
     state.depth = parseInt(depthInput.value, 10);
     state.ease = easeInput.value;
-    state.guideScale = parseInt(guideScaleInput.value, 10);
+    state.guideW = parseInt(guideWInput.value, 10);
+    state.guideH = parseInt(guideHInput.value, 10);
     apply();          // 여기서 파형별 하한으로 주기가 다시 가둬진다
     syncInputs();     // 그 결과를 슬라이더에 되돌려 표시
     save(state);
@@ -175,7 +185,8 @@
   periodInput.addEventListener('input', onChange);
   depthInput.addEventListener('input', onChange);
   easeInput.addEventListener('change', onChange);
-  guideScaleInput.addEventListener('input', onChange);
+  guideWInput.addEventListener('input', onChange);
+  guideHInput.addEventListener('input', onChange);
 
   document.getElementById('panel-reset').addEventListener('click', function () {
     state = Object.assign({}, DEFAULTS);

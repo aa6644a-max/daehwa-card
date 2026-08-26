@@ -198,17 +198,15 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
 }
 
 /* 카드 놓는 자리 가이드. 원본 디자인의 둥근 사각형을 CSS 로 다시 그린 것.
-   비율은 실제 카드와 같은 63:88 로 잡아, 남는 공간 안에서 최대로 키운다.
-   --guide-scale 은 설정 패널의 '카드 가이드 크기' 슬라이더가 실시간으로 조절한다.
-   #stage 가 가운데 정렬(justify/align:center)이라 transform-origin 기본값(중심)과
-   맞아떨어져, 키워도 항상 가운데를 기준으로 커진다 — 위아래 바 자리를 살짝
-   덮는 것도 의도한 동작(실물 카드가 필요하면 더 키울 수 있어야 하므로). */
+   가로 · 세로를 설정 패널에서 각각 따로 조절한다(--guide-w, --guide-h, #stage 기준 %).
+   #stage 가 가운데 정렬(justify/align:center)이라 100% 를 넘겨도 항상 가운데를
+   기준으로 커진다 — 위아래 바 자리를 살짝 덮는 것도 의도한 동작이다
+   (실물 카드가 필요하면 그만큼 더 키울 수 있어야 하므로). */
 #card-guide{
-  height: 100%;
-  width: var(--guide-w, 89%);   /* 원본 디자인의 가로 비율 */
+  width: var(--guide-w, 89%);
+  height: var(--guide-h, 100%);
   border: 1.5px solid var(--ink);
   border-radius: 22px;
-  transform: scale(var(--guide-scale, 1));
 }
 
 /* ── 호흡 레이어 ───────────────────────────────────────────── */
