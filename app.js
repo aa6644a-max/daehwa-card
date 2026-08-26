@@ -133,9 +133,48 @@
     root.style.setProperty('--guide-w', state.guideW + '%');
     root.style.setProperty('--guide-h', state.guideH + '%');
     body.classList.toggle('wave-heart', state.wave === 'heart');
+    measureArtOverlap();   // 가이드 크기가 바뀔 때마다 침범량도 다시 잰다
+  }
+
+  /* ── 카드 가이드가 문구 바를 침범하는 만큼 여백으로 돌리기 ──────
+     카드 가이드(--guide-w/--guide-h)는 고정값이라 손대지 않는다. 대신 문구 바 안에서
+     "이미지 높이 + 여백" 의 합이 항상 --art-max-h 로 유지되게 하여(styles.css 참고)
+     stage/카드 절대 크기는 그대로 두면서, 침범이 일어나는 만큼만 글자 없는 빈 자리로
+     비켜준다. 여백 크기는 기기·언어·화면비마다 다르므로 매번 실측한다. */
+  function measureArtOverlap() {
+    var stage = document.getElementById('stage');
+    var guide = document.getElementById('card-guide');
+    if (!stage || !guide) return;
+    var SAFETY = 4;   // px — 서브픽셀 반올림 오차로 경계선이 글자에 닿지 않도록
+
+    /* 이전에 넣은 여백이 이번 측정에 섞이지 않도록, 실측 전에 0으로 되돌린다.
+       (여백을 넣어도 바 전체 칸 높이는 안 바뀌므로 stage 크기는 그대로지만,
+       혹시 모를 오차 누적을 막기 위해 매번 0 기준으로 다시 잰다.) */
+    root.style.setProperty('--art-buffer-top', '0px');
+    root.style.setProperty('--art-buffer-bottom', '0px');
+
+    var s = stage.getBoundingClientRect();
+    var g = guide.getBoundingClientRect();
+    var overlapTop = Math.max(0, Math.ceil(s.top - g.top) + SAFETY);
+    var overlapBottom = Math.max(0, Math.ceil(g.bottom - s.bottom) + SAFETY);
+
+    root.style.setProperty('--art-buffer-top', overlapTop + 'px');
+    root.style.setProperty('--art-buffer-bottom', overlapBottom + 'px');
   }
 
   apply();
+
+  window.addEventListener('resize', measureArtOverlap);
+  window.addEventListener('orientationchange', measureArtOverlap);
+  (function () {
+    var topImg = document.getElementById('top-art');
+    var botImg = document.getElementById('bottom-art');
+    [topImg, botImg].forEach(function (img) {
+      if (!img) return;
+      img.addEventListener('load', measureArtOverlap);
+      img.addEventListener('error', measureArtOverlap);
+    });
+  })();
 
   /* ── 설정 패널 ─────────────────────────────────────────── */
 

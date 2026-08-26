@@ -158,13 +158,17 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
   :root{ --art-max-h: 17dvh; }
 }
 
+/* 카드 가이드가 stage 를 넘어 위아래 바 자리를 침범하는 만큼(--art-buffer-*, app.js 가
+   실측해 넣는다) 을 문구 이미지 대신 빈 여백으로 돌린다. 바 전체 칸 높이(--art-max-h)는
+   그대로 유지되므로(이미지+여백=art-max-h) stage/카드 크기는 전혀 바뀌지 않고,
+   침범 지대만 글자 없는 빈 자리가 된다. */
 #topbar{
   flex: 0 1 auto;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--side-pad);
+  padding: 0 var(--side-pad) var(--art-buffer-top, 0px);
 }
 
 #bottombar{
@@ -173,7 +177,7 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--side-pad);
+  padding: var(--art-buffer-bottom, 0px) var(--side-pad) 0;
   /* 하단 아트워크를 두 번 탭하면 전체화면이 되므로 여기만 터치를 살려둔다. */
   pointer-events: auto;
 }
@@ -181,9 +185,10 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
 #top-art, #bottom-art{
   display: block;
   width: 100%;
-  max-height: var(--art-max-h);
   object-fit: contain;
 }
+#top-art{ max-height: calc(var(--art-max-h) - var(--art-buffer-top, 0px)); }
+#bottom-art{ max-height: calc(var(--art-max-h) - var(--art-buffer-bottom, 0px)); }
 
 /* 카드가 놓이는 무대: 완전한 흰색, 터치 대상 없음 */
 #stage{
@@ -201,7 +206,9 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
    가로 · 세로를 설정 패널에서 각각 따로 조절한다(--guide-w, --guide-h, #stage 기준 %).
    #stage 가 가운데 정렬(justify/align:center)이라 100% 를 넘겨도 항상 가운데를
    기준으로 커진다 — 위아래 바 자리를 살짝 덮는 것도 의도한 동작이다
-   (실물 카드가 필요하면 그만큼 더 키울 수 있어야 하므로). */
+   (실물 카드가 필요하면 그만큼 더 키울 수 있어야 하므로).
+   이 침범을 문구 글자와 안 겹치게 비워주는 처리는 #topbar/#bottombar 쪽
+   (--art-buffer-*, app.js 의 measureArtOverlap()) 을 참고. */
 #card-guide{
   width: var(--guide-w, 89%);
   height: var(--guide-h, 100%);
