@@ -8,15 +8,15 @@
   /* 기본값을 바꿀 때는 이 버전을 올린다.
      안 올리면 예전에 접속해 값을 만졌던 기기는 저장된 옛 값을 계속 써서
      QR 로 들어온 사람마다 다른 주기를 보게 된다. */
-  var STORE_KEY = 'daehwa-card.breathe.v2';
+  var STORE_KEY = 'daehwa-card.breathe.v3';
 
   var DEFAULTS = {
     wave: 'breathe',  // 'breathe' | 'heart'
     period: 1,        // 초 — QR 로 들어온 모든 사람이 같은 1초 주기를 보게 고정
     depth: 15,        // % (15 = 밝기 100% ↔ 85%)
     ease: 'ease-in-out',
-    guideW: 89,       // % — #stage 가로 기준. 원본 디자인 비율(89%)
-    guideH: 100       // % — #stage 세로 기준. 기본은 남는 세로 전부
+    guideW: 100,      // % — #stage 가로 기준. 실측 카드로 맞춘 값
+    guideH: 123       // % — #stage 세로 기준. 실측 카드로 맞춘 값
   };
   var GUIDE_W_MIN = 60, GUIDE_W_MAX = 110;
   var GUIDE_H_MIN = 70, GUIDE_H_MAX = 130;
