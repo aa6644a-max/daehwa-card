@@ -16,7 +16,12 @@
 html, body{
   margin: 0;
   padding: 0;
-  height: 100%;
+  /* iOS Safari 는 스크롤이 있어야 주소창이 접힌다. 이 화면은 스크롤을 아예 막으므로
+     주소창은 항상 펴진 채로 남는다. vh 는 iOS 에서 '주소창이 접혔다고 가정한'
+     큰 뷰포트 기준이라 실제보다 크게 잡힌다 — dvh(실제 보이는 뷰포트)로 덮어써서
+     항상-주소창-있음 상태를 기준으로 삼는다. 구형 브라우저는 vh 로 그대로 동작. */
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
   background: var(--paper);
@@ -41,6 +46,9 @@ body{
 /* 세로가 짧은 기기에서는 아트워크를 더 줄여 카드 자리를 지킨다 */
 @media (max-height: 700px){
   :root{ --art-max-h: 14vh; }
+  @supports (height: 100dvh){
+    :root{ --art-max-h: 14dvh; }
+  }
 }
 
 /* [hidden] 이 ID 선택자의 display 규칙에 지지 않도록 (오버레이 3종에 필수) */
@@ -122,7 +130,14 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
 /* ── 레이아웃 ──────────────────────────────────────────────── */
 #app{
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* bottom 대신 height 로 고정한다. fixed 요소가 '주소창 접힌' 큰 뷰포트를
+     기준으로 앵커링하는 구형 엔진이 있어, 항상-주소창-있음 실제 보이는
+     높이(dvh)로 명시해 하단이 주소창 뒤로 잘리는 걸 막는다. */
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -138,6 +153,9 @@ body.lang-pending #dimmer{ animation-play-state: paused; }
    실물 카드로 확인한 뒤 이 값만 조절하면 된다. */
 :root{
   --art-max-h: 17vh;
+}
+@supports (height: 100dvh){
+  :root{ --art-max-h: 17dvh; }
 }
 
 #topbar{
@@ -256,7 +274,7 @@ body.panel-open #dimmer{ animation-play-state: paused; }
   pointer-events: none;   /* 빈 컨테이너가 화면을 가로채지 않도록 */
 }
 
-#a2hs, #sleep-warn, #fs-note{
+#sleep-warn, #fs-note{
   pointer-events: auto;
   display: flex;
   align-items: center;
@@ -270,9 +288,9 @@ body.panel-open #dimmer{ animation-play-state: paused; }
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
 }
 
-#a2hs p, #sleep-warn p, #fs-note p{ margin: 0; flex: 1; }
+#sleep-warn p, #fs-note p{ margin: 0; flex: 1; }
 
-#a2hs button, #sleep-warn button, #fs-note button{
+#sleep-warn button, #fs-note button{
   flex: 0 0 auto;
   border: 0;
   border-radius: 8px;

@@ -41,9 +41,6 @@
   var I18N = {
     ko: {
       ok: '확인',
-      a2hs_ios: '공유 버튼 → “홈 화면에 추가” 하면 주소창 없이 전체 화면으로 볼 수 있습니다.',
-      a2hs_ios_other: 'Safari 로 열어 공유 → “홈 화면에 추가” 하시면 주소창 없이 전체 화면으로 볼 수 있습니다.',
-      a2hs_other: '메뉴(⋮) → “홈 화면에 추가” 하면 주소창 없이 전체 화면으로 볼 수 있습니다.',
       fs_standalone: '이 기기는 웹에서 상단 상태바를 숨길 수 없습니다. 지금이 최대 화면입니다.',
       fs_ios_other: '아이폰은 모든 브라우저가 Safari 엔진을 써서 전체화면이 안 됩니다. Safari 로 열어 공유 → “홈 화면에 추가” 하시면 주소창이 사라집니다.',
       fs_ios: '아이폰은 웹 전체화면 기능이 없습니다. 공유 버튼 → “홈 화면에 추가” 하시면 주소창이 사라집니다.',
@@ -52,9 +49,6 @@
     },
     en: {
       ok: 'OK',
-      a2hs_ios: 'Tap Share → “Add to Home Screen” to view full screen without the address bar.',
-      a2hs_ios_other: 'Open this page in Safari, then Share → “Add to Home Screen” to view full screen.',
-      a2hs_other: 'Menu (⋮) → “Add to Home screen” to view full screen without the address bar.',
       fs_standalone: 'This device cannot hide the status bar from a web page. This is as large as it gets.',
       fs_ios_other: 'On iPhone every browser uses the Safari engine, so full screen is unavailable. Open in Safari, then Share → “Add to Home Screen” to remove the address bar.',
       fs_ios: 'iPhone does not support full screen for web pages. Tap Share → “Add to Home Screen” to remove the address bar.',
@@ -63,9 +57,6 @@
     },
     ja: {
       ok: 'OK',
-      a2hs_ios: '共有ボタン →「ホーム画面に追加」でアドレスバーなしの全画面で見られます。',
-      a2hs_ios_other: 'Safari で開いてから共有 →「ホーム画面に追加」でアドレスバーなしの全画面で見られます。',
-      a2hs_other: 'メニュー（⋮）→「ホーム画面に追加」でアドレスバーなしの全画面で見られます。',
       fs_standalone: 'この端末ではウェブページから上部のステータスバーを隠せません。これが最大表示です。',
       fs_ios_other: 'iPhone はすべてのブラウザが Safari エンジンのため全画面にできません。Safari で開いて共有 →「ホーム画面に追加」するとアドレスバーが消えます。',
       fs_ios: 'iPhone はウェブページの全画面表示に対応していません。共有ボタン →「ホーム画面に追加」でアドレスバーが消えます。',
@@ -74,9 +65,6 @@
     },
     zh: {
       ok: '確定',
-      a2hs_ios: '點選分享 →「加入主畫面」即可全螢幕檢視，不顯示網址列。',
-      a2hs_ios_other: '請用 Safari 開啟本頁，再點分享 →「加入主畫面」即可全螢幕檢視。',
-      a2hs_other: '選單（⋮）→「加到主畫面」即可全螢幕檢視，不顯示網址列。',
       fs_standalone: '此裝置無法從網頁隱藏上方狀態列，目前已是最大畫面。',
       fs_ios_other: 'iPhone 上所有瀏覽器都使用 Safari 引擎，因此無法全螢幕。請用 Safari 開啟，再點分享 →「加入主畫面」即可隱藏網址列。',
       fs_ios: 'iPhone 不支援網頁全螢幕。點選分享 →「加入主畫面」即可隱藏網址列。',
@@ -441,28 +429,11 @@
       go();
     }
 
-    /* 거부하는 기기에서 탭할 때마다 무한히 재시도하지 않도록 상한을 둔다.
-       패널의 '전체화면 지금 시도' 버튼과 배너 두 번 탭은 go()/toggle() 을
-       직접 부르므로 이 상한과 무관하다. */
-    var MAX_AUTO_TRIES = 5;
+    /* 전체화면은 자동으로 걸지 않는다. 이 화면은 주소창이 보이는 일반 브라우저 탭에서
+       보는 게 기본이고(특히 iPhone Safari 는 전체화면 API 자체가 없다), 전체화면은
+       하단 배너를 두 번 탭했을 때만 켜지는 안드로이드 전용 이스터에그로 남겨둔다. */
     var userExited = false;
-
-    /* 하단 바(배너)와 상단 바는 자동 진입 대상에서 뺀다.
-       배너를 두 번 탭할 때 첫 탭이 자동 진입, 두 번째 탭이 토글 해제가 되어
-       서로 상쇄되는 것을 막기 위해서다. */
     var bottombar = document.getElementById('bottombar');
-    var topbar = document.getElementById('topbar');
-
-    function onGesture(e) {
-      if (userExited || fsState.tries >= MAX_AUTO_TRIES) return;
-      var t = e && e.target;
-      if (t && (bottombar.contains(t) || topbar.contains(t) || panel.contains(t))) return;
-      go();
-    }
-
-    ['pointerdown', 'touchend', 'click'].forEach(function (ev) {
-      document.addEventListener(ev, onGesture, { passive: true });
-    });
 
     /* 두 번 탭 인식은 직접 한다. 모바일에서 dblclick 은 브라우저마다 안 오는 경우가 있고,
        body 의 touch-action:none 때문에 더 불안정하다. */
@@ -565,39 +536,12 @@
     };
   })();
 
-  /* ── 홈 화면 추가 안내 (최초 1회) ──────────────────────── */
-  function showA2HS() {
-    var SEEN = 'daehwa-card.a2hs.seen';
-    if (isStandalone()) return;
-
-    var seen = false;
-    try { seen = localStorage.getItem(SEEN) === '1'; } catch (e) {}
-    if (seen) return;
-
-    /* 아이폰에서 제대로 된 standalone 을 만들 수 있는 건 Safari 뿐이다.
-       Chrome 등에서 추가하면 주소창이 그대로 남을 수 있어 안내를 나눈다. */
-    var msg = iosNonSafari ? t('a2hs_ios_other')
-            : isIOS        ? t('a2hs_ios')
-                           : t('a2hs_other');
-
-    var box = document.getElementById('a2hs');
-    document.getElementById('a2hs-text').textContent = msg;
-    document.getElementById('a2hs-close').textContent = t('ok');
-    box.hidden = false;
-
-    document.getElementById('a2hs-close').addEventListener('click', function () {
-      box.hidden = true;
-      try { localStorage.setItem(SEEN, '1'); } catch (e) {}
-    });
-  }
-
   /* ── 필름 카드 접촉으로 인한 원치 않는 동작 차단 ──────── */
   (function harden() {
-    var a2hsBox = document.getElementById('a2hs');
     var warnBox = document.getElementById('sleep-warn');
 
     function inUI(t) {
-      return panel.contains(t) || a2hsBox.contains(t) || warnBox.contains(t);
+      return panel.contains(t) || warnBox.contains(t);
     }
 
     ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (ev) {
@@ -633,11 +577,10 @@
       pick.hidden = true;
       body.classList.remove('lang-pending');
 
-      /* 언어 버튼 탭은 확실한 사용자 조작이다. 브라우저가 전체화면과 화면 꺼짐 방지에
-         요구하는 것이 바로 이 '사용자 조작'이라, 여기서 거는 것이 가장 성공률이 높다. */
-      goFullscreen();
+      /* 언어 버튼 탭은 확실한 사용자 조작이라, 화면 꺼짐 방지는 여기서 거는 게
+         성공률이 가장 높다. 전체화면은 더 이상 자동으로 걸지 않는다(하단 배너
+         두 번 탭 전용 이스터에그). */
       ensureAwake(false);
-      showA2HS();
     }
 
     [].forEach.call(document.querySelectorAll('.lang-btn'), function (b) {
@@ -653,7 +596,6 @@
     if (LANGS.indexOf(q) !== -1) {
       applyLang(q);
       pick.hidden = true;
-      showA2HS();
     } else {
       open();
     }
