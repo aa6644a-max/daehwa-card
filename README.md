@@ -76,7 +76,7 @@ QR 로 들어온 사람은 **항상 언어 선택 화면부터** 본다(선택�
 | `ko` | 한국어 | `ko` | `top-ko.png` · `bottom-ko.png` (자리표시) |
 | `en` | English | `en` | `top-en.png` · `bottom-en.png` (자리표시) |
 | `ja` | 日本語 | `ja` | `top-ja.png` · `bottom-ja.png` **(실제 디자인)** |
-| `zh` | 繁體中文 (대만·홍콩) | `zh-Hant` | `top-zh.png` · `bottom-zh.png` (자리표시) |
+| `zh` | 简体中文 (중국 본토) | `zh-Hans` | `top-zh.png` · `bottom-zh.png` (자리표시) |
 
 `?lang=ja` 처럼 붙이면 선택 화면을 건너뛰고 바로 그 언어로 들어간다.
 **나라별 QR 을 따로 뿌리고 싶을 때 이 주소를 쓰면 된다.**

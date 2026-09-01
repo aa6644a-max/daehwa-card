@@ -61,8 +61,8 @@ html[lang^="ja"] body{
                "Yu Gothic", "Noto Sans JP", "Meiryo", sans-serif;
 }
 html[lang^="zh"] body{
-  font-family: -apple-system, "PingFang TC", "Hiragino Sans CNS",
-               "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", "Noto Sans SC", sans-serif;
 }
 
 /* ── 언어 선택 화면 ─────────────────────────────────────────── */
@@ -110,7 +110,7 @@ html[lang^="zh"] body{
 }
 
 .lang-btn[lang="ja"]{ font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; }
-.lang-btn[lang="zh-Hant"]{ font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif; }
+.lang-btn[lang="zh-Hans"]{ font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
 
 /* 언어를 고르기 전에는 호흡을 멈춰 글자가 또렷하게 */
 body.lang-pending #dimmer{ animation-play-state: paused; }

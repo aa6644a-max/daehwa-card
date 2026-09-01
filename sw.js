@@ -1,6 +1,6 @@
 /* 오프라인에서도 화면이 뜨도록 하는 최소 서비스 워커.
    네트워크 우선 + 실패 시 캐시 → 배너 PNG를 갈아끼워도 바로 반영된다. */
-const CACHE = 'daehwa-card-v4';
+const CACHE = 'daehwa-card-v5';
 
 const SHELL = [
   './',
